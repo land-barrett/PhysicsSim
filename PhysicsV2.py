@@ -9,6 +9,10 @@ controls = False
 addObjectMenu = False
 recieveText = False
 userText = ""
+xVelocity = ""
+yVelocity = ""
+radius = ""
+mass = ""
 xVelocityBoxClicked = False
 yVelocityBoxClicked = False
 massBoxClicked = False
@@ -20,7 +24,7 @@ radiusDebounce = False
 anyBoxClicked = False
 createObject = False
 objectNumber = 0
-gravity = 0.0
+gravity = 0
 noCollide = False
 negx = False
 negy = False
@@ -221,7 +225,7 @@ while running:
 
                     addObjectMenu = True
 
-        #add object
+        #add object enter to quit typing
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 xVelocityBoxClicked = False
@@ -232,9 +236,9 @@ while running:
             
             #gravity change
             if event.key == pygame.K_EQUALS:
-                gravity += 0.1
+                gravity += 1
             if event.key == pygame.K_MINUS:
-                gravity -= 0.1
+                gravity -= 1
             
             #ball selection
             if event.key == pygame.K_COMMA:
@@ -609,6 +613,14 @@ while running:
             displaySurf.blit(createButtonText, (addObjectMenuPlacement[0] + 150, addObjectMenuPlacement[1] + 165))
             if createObject:
                 pygame.draw.circle(displaySurf, red, addObjectMenuPlacement, 3)
+                if xVelocity == "":
+                    xVelocity = 0
+                if yVelocity == "":
+                    yVelocity = 0
+                if mass == "":
+                    mass = 1
+                if radius == "":
+                    radius = 3
                 currentObjects.append(screenObject(addObjectMenuPlacement[0], addObjectMenuPlacement[1], float(xVelocity), float(yVelocity), float(mass), radius, False, -1, float(mass)*float(xVelocity), float(mass)*float(yVelocity), 0, 0, 0))
                 createObject = False
                 addObjectMenu = False
@@ -616,7 +628,14 @@ while running:
         
         
     #gravity label
-    gravityLabelText = titleFont.render("Gravity:" + str('%.1f'%(gravity)), False, white, blue)
+    gravityString = str(gravity)
+    negativeGravityString = str(-gravity)
+    if gravity >= 10:
+        gravityLabelText = titleFont.render("Gravity:" + gravityString[0] + "." + gravityString[1], False, white, blue)
+    elif gravity < 0:
+        gravityLabelText = titleFont.render("Gravity:" + "-0." + negativeGravityString[0] , False, white, blue)
+    else:
+        gravityLabelText = titleFont.render("Gravity:" + "0." + gravityString[0] , False, white, blue)
     displaySurf.blit(gravityLabelText, (825, 75))
 
 
@@ -745,35 +764,40 @@ while running:
         yImpactForce = object.mass * ((2 * object.yVelocity) / impactDuration)
         yFrictionForce = frictionCoefficient * yImpactForce
         yAngularAcceleration = yFrictionForce / object.mass
-
-        if object.xLocation > 775 - object.radius:
+        
+        if object.xLocation >= 775 - object.radius:
             object.xLocation = 775 - object.radius
+
             if object.yVelocity > 0:
                 object.angleVelocity = object.angleVelocity + (xAngularAcceleration * impactDuration)
             if object.yVelocity < 0:
                 object.angleVelocity = object.angleVelocity - (xAngularAcceleration * impactDuration)
-        if object.yLocation > 775 - object.radius:
+
+        if object.yLocation >= 775 - object.radius:
             object.yLocation = 775 - object.radius
-            if object.xVelocity > 0:
-                object.angleVelocity = object.angleVelocity - (yAngularAcceleration * impactDuration)
-            if object.xVelocity < 0:
-                object.angleVelocity = object.angleVelocity + (yAngularAcceleration * impactDuration)
-        if object.xLocation < 25 + object.radius:
-            object.xLocation = 25 + object.radius
-            if object.yVelocity > 0:
-                object.angleVelocity = object.angleVelocity + (xAngularAcceleration * impactDuration)
-            if object.yVelocity < 0:
-                object.angleVelocity = object.angleVelocity - (xAngularAcceleration * impactDuration)
-        if object.yLocation < 25 + object.radius:
-            object.yLocation = 25 + object.radius
             
             if object.xVelocity > 0:
                 object.angleVelocity = object.angleVelocity - (yAngularAcceleration * impactDuration)
-                
+            if object.xVelocity < 0:
+                object.angleVelocity = object.angleVelocity + (yAngularAcceleration * impactDuration)
+        
+        if object.xLocation <= 25 + object.radius:
+            object.xLocation = 25 + object.radius
+            
+            if object.yVelocity > 0:
+                object.angleVelocity = object.angleVelocity + (xAngularAcceleration * impactDuration)
+            if object.yVelocity < 0:
+                object.angleVelocity = object.angleVelocity - (xAngularAcceleration * impactDuration)
+        
+        if object.yLocation <= 25 + object.radius:
+            object.yLocation = 25 + object.radius
+            
+            if object.xVelocity > 0:
+                object.angleVelocity = object.angleVelocity - (yAngularAcceleration * impactDuration)        
             if object.xVelocity < 0:
                 object.angleVelocity = object.angleVelocity + (yAngularAcceleration * impactDuration)
                 
-
+                
         
         #wall collisions
         if object.xLocation == (775 - object.radius) or object.xLocation == (25 + object.radius):
@@ -782,7 +806,7 @@ while running:
             object.yVelocity = -object.yVelocity
         
         #gravity
-        object.yVelocity = object.yVelocity - (gravity / 10)
+        object.yVelocity = object.yVelocity - (gravity / 100)
             
         #vector drawing
         pygame.draw.line(displaySurf, blue, (object.xLocation, object.yLocation), (object.xLocation + object.xVelocity * 2 , object.yLocation - object.yVelocity * 2))
