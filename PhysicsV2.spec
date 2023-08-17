@@ -28,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='PhysicsV2',
+    name='Physics Simulator',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
